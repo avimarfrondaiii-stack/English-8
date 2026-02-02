@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Letter Writing Interactive Lesson</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&amp;family=Source+Sans+3:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    .font-heading { font-family: 'Crimson Pro', Georgia, serif; }
+    .font-body { font-family: 'Source Sans 3', system-ui, sans-serif; }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+      50% { box-shadow: 0 0 20px 5px rgba(234, 88, 12, 0.2); }
+    }
+    
+    .animate-slide-in {
+      animation: slideIn 0.5s ease-out forwards;
+    }
+    
+    .day-card:hover {
+      animation: pulse-glow 2s infinite;
+    }
+    
+    .letter-sample {
+      background: linear-gradient(135deg, #fef7ed 0%, #fff7ed 50%, #fef3c7 100%);
+      border-left: 4px solid #ea580c;
+    }
+    
+    .progress-fill {
+      transition: width 0.5s ease-out;
+    }
+    
+    .quiz-option {
+      transition: all 0.2s ease;
+    }
+    
+    .quiz-option:hover:not(.selected):not(.correct):not(.incorrect) {
+      transform: translateX(8px);
+      background: #fff7ed;
+    }
+    
+    .correct { background: #dcfce7 !important; border-color: #16a34a !important; }
+    .incorrect { background: #fee2e2 !important; border-color: #dc2626 !important; }
+    .selected { background: #fef3c7 !important; border-color: #ea580c !important; }
+    
+    .envelope-icon {
+      filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full font-body">
+  <div id="app" class="h-full w-full overflow-auto" style="background: linear-gradient(180deg, #1c1917 0%, #292524 50%, #1c1917 100%);"><!-- Header -->
+   <header class="sticky top-0 z-50 backdrop-blur-md" style="background: rgba(28, 25, 23, 0.95);">
+    <div class="max-w-6xl mx-auto px-4 py-4">
+     <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+       <div class="text-4xl envelope-icon">
+        ✉️
+       </div>
+       <div>
+        <h1 id="main-title" class="font-heading text-2xl md:text-3xl font-bold" style="color: #fdba74;">Types &amp; Parts of Letters</h1>
+        <p id="welcome-text" class="text-sm" style="color: #a8a29e;">Interactive English 8 • Week Lesson</p>
+       </div>
+      </div>
+      <div class="flex items-center gap-4"><!-- Zoom Controls -->
+       <div class="flex items-center gap-2 px-3 py-2 rounded-full" style="background: rgba(234, 88, 12, 0.15);"><button id="zoom-out" class="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110" style="background: rgba(234, 88, 12, 0.3); color: #fdba74;" title="Zoom Out"> <span class="text-lg font-bold">−</span> </button> <span id="zoom-level" class="text-sm font-medium px-2" style="color: #fdba74;">100%</span> <button id="zoom-in" class="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110" style="background: rgba(234, 88, 12, 0.3); color: #fdba74;" title="Zoom In"> <span class="text-lg font-bold">+</span> </button>
+       </div><!-- Progress -->
+       <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full" style="background: rgba(234, 88, 12, 0.15);"><span style="color: #fb923c;">📊</span> <span id="progress-text" class="text-sm font-medium" style="color: #fdba74;">0/5 Days</span>
+       </div>
+      </div>
+     </div><!-- Progress Bar -->
+     <div class="mt-4 h-2 rounded-full overflow-hidden" style="background: #44403c;">
+      <div id="progress-bar" class="progress-fill h-full rounded-full" style="background: linear-gradient(90deg, #ea580c, #fb923c); width: 0%;"></div>
+     </div>
+    </div>
+   </header><!-- Main Content -->
+   <main class="max-w-6xl mx-auto px-4 py-8"><!-- Day Selection Grid -->
+    <div id="day-grid" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8"><!-- Days will be dynamically generated -->
+    </div><!-- Lesson Content Area -->
+    <div id="lesson-content" class="rounded-2xl p-6 md:p-8" style="background: linear-gradient(135deg, #292524 0%, #1c1917 100%); border: 1px solid #44403c;">
+     <div class="text-center py-12">
+      <div class="text-6xl mb-4">
+       📬
+      </div>
+      <h2 class="font-heading text-2xl font-bold mb-2" style="color: #fdba74;">Welcome to Letter Writing!</h2>
+      <p class="max-w-lg mx-auto" style="color: #a8a29e;">Select a day above to begin your learning journey. Each day covers different aspects of formal and informal correspondence.</p>
+     </div>
+    </div>
+   </main><!-- Footer -->
+   <footer class="py-6 text-center" style="color: #78716c;">
+    <p class="text-sm">Learning Competencies: Letter Analysis • Structure &amp; Rhetoric • Sender's Voice</p>
+   </footer>
+  </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      lesson_title: "Types & Parts of Letters",
+      welcome_message: "Interactive English 8 • Week Lesson",
+      primary_color: "#1c1917",
+      secondary_color: "#292524",
+      accent_color: "#ea580c",
+      text_color: "#fdba74",
+      muted_color: "#a8a29e",
+      font_family: "Crimson Pro",
+      font_size: 40
+    };
+
+    let config = { ...defaultConfig };
+    let studentProgress = [];
+    let currentDay = null;
+    let zoomLevel = 1.0;
+
+    // Lesson Data Structure
+    const lessonData = {
+      1: {
+        title: "Introduction to Letters",
+        icon: "📝",
+        objective: "Define what a letter is and understand its purpose",
+        sections: [
+          {
+            type: "content",
+            title: "What is a Letter?",
+            content: `<p class="mb-4">A <strong>letter</strong> is a written message from one party to another. It is one of the oldest forms of communication, serving as a bridge between people across distances and time.</p>
+            <p class="mb-4">Letters can be:</p>
+            <ul class="list-disc pl-6 mb-4 space-y-2">
+              <li><strong>Personal</strong> – expressing feelings, sharing news, or maintaining relationships</li>
+              <li><strong>Professional</strong> – conducting business, making inquiries, or formal communication</li>
+              <li><strong>Official</strong> – government or institutional correspondence</li>
+            </ul>
+            <div class="letter-sample p-4 rounded-lg my-4">
+              <p class="italic">"A letter is a conversation between absent friends." – Ancient saying</p>
+            </div>`
+          },
+          {
+            type: "content",
+            title: "The Evolving Role of Letters",
+            content: `<p class="mb-4">While technology has introduced emails and instant messaging, understanding traditional letter writing remains essential because:</p>
+            <ul class="list-disc pl-6 space-y-2">
+              <li>It develops formal communication skills</li>
+              <li>Many professional contexts still require written correspondence</li>
+              <li>It teaches structured, thoughtful expression</li>
+              <li>Legal and official documents often follow letter formats</li>
+            </ul>`
+          },
+          {
+            type: "activity",
+            title: "Activity: Classify the Correspondence",
+            instructions: "Identify whether each example is Personal, Professional, or Official communication.",
+            questions: [
+              { text: "A birthday greeting to your grandmother", answer: "personal", options: ["personal", "professional", "official"] },
+              { text: "A letter asking about job vacancies", answer: "professional", options: ["personal", "professional", "official"] },
+              { text: "A government notice about new regulations", answer: "official", options: ["personal", "professional", "official"] },
+              { text: "A thank-you note to a friend", answer: "personal", options: ["personal", "professional", "official"] },
+              { text: "A letter requesting product information", answer: "professional", options: ["personal", "professional", "official"] }
+            ]
+          }
+        ],
+        generalization: "Letters are essential tools for transmitting meaning and purpose across modalities. They serve personal, professional, and official functions in our daily lives."
+      },
+      2: {
+        title: "Formal vs. Informal Letters",
+        icon: "  ️",
+        objective: "Differentiate between formal and informal letters",
+        sections: [
+          {
+            type: "content",
+            title: "Understanding the Difference",
+            content: `<div class="grid md:grid-cols-2 gap-6">
+              <div class="p-4 rounded-lg" style="background: rgba(234, 88, 12, 0.1); border: 1px solid #ea580c;">
+                <h4 class="font-bold text-lg mb-3" style="color: #fb923c;">📜 Formal Letters</h4>
+                <ul class="space-y-2 text-sm">
+                  <li>• Written to people you don't know personally</li>
+                  <li>• Uses professional, respectful language</li>
+                  <li>• Follows strict structure and format</li>
+                  <li>• Avoids contractions and slang</li>
+                  <li>• Examples: Business letters, complaint letters, letters of inquiry</li>
+                </ul>
+              </div>
+              <div class="p-4 rounded-lg" style="background: rgba(253, 186, 116, 0.1); border: 1px solid #fdba74;">
+                <h4 class="font-bold text-lg mb-3" style="color: #fdba74;">💌 Informal Letters</h4>
+                <ul class="space-y-2 text-sm">
+                  <li>• Written to friends, family, or close acquaintances</li>
+                  <li>• Uses casual, friendly language</li>
+                  <li>• Has flexible structure</li>
+                  <li>• May include contractions, colloquialisms</li>
+                  <li>• Examples: Thank-you notes, birthday letters, personal updates</li>
+                </ul>
+              </div>
+            </div>`
+          },
+          {
+            type: "content",
+            title: "Sample Comparison",
+            content: `<div class="space-y-4">
+              <div class="letter-sample p-4 rounded-lg">
+                <p class="font-bold mb-2" style="color: #ea580c;">Formal Opening:</p>
+                <p class="italic">"Dear Sir/Madam, I am writing to inquire about the available positions in your esteemed organization."</p>
+              </div>
+              <div class="p-4 rounded-lg" style="background: rgba(253, 186, 116, 0.1); border-left: 4px solid #fdba74;">
+                <p class="font-bold mb-2" style="color: #fdba74;">Informal Opening:</p>
+                <p class="italic">"Hey Maria! How's it going? I've got some exciting news to share with you!"</p>
+              </div>
+            </div>`
+          },
+          {
+            type: "content",
+            title: "📝 Complete Letter Examples",
+            content: `<div class="grid md:grid-cols-2 gap-6">
+              <div class="p-5 rounded-lg font-mono text-sm space-y-2" style="background: rgba(234, 88, 12, 0.1); border: 2px solid #ea580c;">
+                <p class="font-bold text-center mb-3 not-italic" style="color: #ea580c;">FORMAL LETTER EXAMPLE</p>
+                <div class="text-right">
+                  456 Mabini Street<br>
+                  Manila, Philippines<br>
+                  January 20, 2025
+                </div>
+                <div class="mt-3">
+                  Mr. Roberto Santos<br>
+                  Hiring Manager<br>
+                  Tech Solutions Inc.<br>
+                  789 Ayala Avenue<br>
+                  Makati City
+                </div>
+                <div class="mt-3">Dear Mr. Santos:</div>
+                <div class="mt-3">
+                  I am writing to express my interest in the Junior Developer position advertised on your company website. With my background in computer science and passion for technology, I believe I would be a valuable addition to your team.
+                </div>
+                <div class="mt-3">
+                  I have completed my Bachelor's degree in Computer Science and have gained practical experience through internships. I am particularly impressed by your company's innovative projects and would welcome the opportunity to contribute to your success.
+                </div>
+                <div class="mt-3">
+                  I have attached my resume for your review. Thank you for considering my application. I look forward to hearing from you.
+                </div>
+                <div class="mt-3">Respectfully yours,</div>
+                <div class="mt-3">
+                  <em>[Signature]</em><br>
+                  Maria Clara Reyes
+                </div>
+              </div>
+              
+              <div class="p-5 rounded-lg font-mono text-sm space-y-2" style="background: rgba(253, 186, 116, 0.1); border: 2px solid #fdba74;">
+                <p class="font-bold text-center mb-3 not-italic" style="color: #fdba74;">INFORMAL LETTER EXAMPLE</p>
+                <div class="text-right">
+                  Quezon City<br>
+                  January 20, 2025
+                </div>
+                <div class="mt-3">Dear Lola Rosa,</div>
+                <div class="mt-3">
+                  How are you? I hope this letter finds you in good health! I'm so sorry I haven't written sooner – school has been really busy lately.
+                </div>
+                <div class="mt-3">
+                  I wanted to tell you about my graduation! Can you believe I'm finally finishing high school? The ceremony is on March 15th at 10 AM, and I really hope you can come. It would mean the world to me to have you there!
+                </div>
+                <div class="mt-3">
+                  Mom and Dad send their love. They've been asking about you too. Please let me know if you can make it to the graduation. I miss you so much!
+                </div>
+                <div class="mt-3">
+                  Give my regards to everyone there. Can't wait to see you soon!
+                </div>
+                <div class="mt-3">Love always,</div>
+                <div class="mt-3">
+                  <em>[Signature]</em><br>
+                  Sofia
+                </div>
+              </div>
+            </div>`
+          },
+          {
+            type: "activity",
+            title: "Activity: Formal or Informal?",
+            instructions: "Classify each phrase as Formal or Informal language.",
+            questions: [
+              { text: "I would be grateful if you could...", answer: "formal", options: ["formal", "informal"] },
+              { text: "What's up? Long time no see!", answer: "informal", options: ["formal", "informal"] },
+              { text: "I am writing to express my concern regarding...", answer: "formal", options: ["formal", "informal"] },
+              { text: "Can't wait to catch up with you!", answer: "informal", options: ["formal", "informal"] },
+              { text: "Please find attached the requested documents.", answer: "formal", options: ["formal", "informal"] },
+              { text: "Gotta go now, talk later!", answer: "informal", options: ["formal", "informal"] }
+            ]
+          }
+        ],
+        generalization: "The structure and tone of a letter are determined by the relationship between sender and receiver. Formal letters follow strict conventions, while informal letters allow for personal expression."
+      },
+      3: {
+        title: "Anatomy of a Letter",
+        icon: "🔍",
+        objective: "Recognize and identify the common parts of a letter",
+        sections: [
+          {
+            type: "content",
+            title: "Parts of a Formal Letter",
+            content: `<div class="space-y-4">
+              <div class="p-4 rounded-lg" style="background: rgba(234, 88, 12, 0.05); border: 1px solid #44403c;">
+                <div class="grid gap-3">
+                  <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background: #ea580c; color: white;">1</span>
+                    <div><strong>Heading/Letterhead</strong> – Contains sender's address and date</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background: #ea580c; color: white;">2</span>
+                    <div><strong>Inside Address</strong> – Recipient's name, title, and address</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background: #ea580c; color: white;">3</span>
+                    <div><strong>Salutation</strong> – Greeting (e.g., "Dear Mr. Santos:")</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background: #ea580c; color: white;">4</span>
+                    <div><strong>Body</strong> – Main content of the letter (introduction, details, conclusion)</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background: #ea580c; color: white;">5</span>
+                    <div><strong>Complimentary Close</strong> – Closing phrase (e.g., "Sincerely,")</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background: #ea580c; color: white;">6</span>
+                    <div><strong>Signature</strong> – Handwritten signature and typed name</div>
+                  </div>
+                </div>
+              </div>
+            </div>`
+          },
+          {
+            type: "content",
+            title: "Sample Letter with Parts Labeled",
+            content: `<div class="letter-sample p-5 rounded-lg font-mono text-sm space-y-3">
+              <div class="text-right">
+                <span class="px-2 py-1 rounded text-xs" style="background: #ea580c; color: white;">HEADING</span><br>
+                123 Rizal Street<br>
+                Quezon City, Metro Manila<br>
+                January 15, 2025
+              </div>
+              <div>
+                <span class="px-2 py-1 rounded text-xs" style="background: #fb923c; color: white;">INSIDE ADDRESS</span><br>
+                Ms. Ana Reyes<br>
+                Human Resources Manager<br>
+                ABC Corporation
+              </div>
+              <div>
+                <span class="px-2 py-1 rounded text-xs" style="background: #fdba74; color: #1c1917;">SALUTATION</span><br>
+                Dear Ms. Reyes:
+              </div>
+              <div>
+                <span class="px-2 py-1 rounded text-xs" style="background: #fcd34d; color: #1c1917;">BODY</span><br>
+                I am writing to inquire about...<br>
+                [Main content goes here]<br>
+                Thank you for your consideration.
+              </div>
+              <div>
+                <span class="px-2 py-1 rounded text-xs" style="background: #a3e635; color: #1c1917;">COMPLIMENTARY CLOSE</span><br>
+                Sincerely,
+              </div>
+              <div>
+                <span class="px-2 py-1 rounded text-xs" style="background: #34d399; color: #1c1917;">SIGNATURE</span><br>
+                <em>[Signature]</em><br>
+                Juan dela Cruz
+              </div>
+            </div>`
+          },
+          {
+            type: "activity",
+            title: "Activity: Identify the Letter Parts",
+            instructions: "Match each excerpt to the correct letter part.",
+            questions: [
+              { text: "456 Bonifacio Ave., Manila", answer: "heading", options: ["heading", "salutation", "body", "signature"] },
+              { text: "Dear Principal Garcia:", answer: "salutation", options: ["heading", "salutation", "body", "complimentary close"] },
+              { text: "I am writing to request permission for...", answer: "body", options: ["heading", "salutation", "body", "signature"] },
+              { text: "Respectfully yours,", answer: "complimentary close", options: ["salutation", "body", "complimentary close", "signature"] },
+              { text: "Maria Santos", answer: "signature", options: ["heading", "inside address", "complimentary close", "signature"] }
+            ]
+          }
+        ],
+        generalization: "Standardized parts and formats ensure clarity and professional transmission of ideas. Understanding each component helps in composing effective correspondence."
+      },
+      4: {
+        title: "Transitional Devices & Etiquette",
+        icon: "🔗",
+        objective: "Identify formal transitional words and expressions",
+        sections: [
+          {
+            type: "content",
+            title: "Formal Transitional Words",
+            content: `<p class="mb-4">Transitional devices help connect ideas smoothly and maintain coherence in formal writing.</p>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-lg" style="background: rgba(234, 88, 12, 0.1);">
+                <h5 class="font-bold mb-2" style="color: #fb923c;">Addition</h5>
+                <p class="text-sm">Furthermore, Moreover, In addition, Additionally, Also</p>
+              </div>
+              <div class="p-4 rounded-lg" style="background: rgba(234, 88, 12, 0.1);">
+                <h5 class="font-bold mb-2" style="color: #fb923c;">Contrast</h5>
+                <p class="text-sm">However, Nevertheless, On the other hand, Conversely, Although</p>
+              </div>
+              <div class="p-4 rounded-lg" style="background: rgba(234, 88, 12, 0.1);">
+                <h5 class="font-bold mb-2" style="color: #fb923c;">Cause/Effect</h5>
+                <p class="text-sm">Therefore, Consequently, As a result, Thus, Hence</p>
+              </div>
+              <div class="p-4 rounded-lg" style="background: rgba(234, 88, 12, 0.1);">
+                <h5 class="font-bold mb-2" style="color: #fb923c;">Conclusion</h5>
+                <p class="text-sm">In conclusion, To summarize, Finally, In summary, Ultimately</p>
+              </div>
+            </div>`
+          },
+          {
+            type: "content",
+            title: "Formal vs. Informal Equivalents",
+            content: `<div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr style="background: rgba(234, 88, 12, 0.2);">
+                    <th class="p-3 text-left rounded-tl-lg" style="color: #fdba74;">Informal</th>
+                    <th class="p-3 text-left rounded-tr-lg" style="color: #fdba74;">Formal Equivalent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid #44403c;">
+                    <td class="p-3">But</td>
+                    <td class="p-3">However, Nevertheless</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #44403c;">
+                    <td class="p-3">So</td>
+                    <td class="p-3">Therefore, Consequently</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #44403c;">
+                    <td class="p-3">Also / And</td>
+                    <td class="p-3">Furthermore, Moreover</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #44403c;">
+                    <td class="p-3">Like</td>
+                    <td class="p-3">For example, For instance</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3">Anyway</td>
+                    <td class="p-3">Nevertheless, Regardless</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>`
+          },
+          {
+            type: "content",
+            title: "Letter Writing Etiquette",
+            content: `<div class="space-y-3">
+              <div class="flex items-start gap-3 p-3 rounded-lg" style="background: rgba(52, 211, 153, 0.1);">
+                <span class="text-xl">✓</span>
+                <div><strong>Be polite and respectful</strong> – Use courteous language throughout</div>
+              </div>
+              <div class="flex items-start gap-3 p-3 rounded-lg" style="background: rgba(52, 211, 153, 0.1);">
+                <span class="text-xl">✓</span>
+                <div><strong>Be clear and concise</strong> – State your purpose directly</div>
+              </div>
+              <div class="flex items-start gap-3 p-3 rounded-lg" style="background: rgba(52, 211, 153, 0.1);">
+                <span class="text-xl">✓</span>
+                <div><strong>Use appropriate titles</strong> – Mr., Ms., Dr., etc.</div>
+              </div>
+              <div class="flex items-start gap-3 p-3 rounded-lg" style="background: rgba(248, 113, 113, 0.1);">
+                <span class="text-xl">✗</span>
+                <div><strong>Avoid slang and abbreviations</strong> – No "u" for "you" or "thx" for "thanks"</div>
+              </div>
+              <div class="flex items-start gap-3 p-3 rounded-lg" style="background: rgba(248, 113, 113, 0.1);">
+                <span class="text-xl">✗</span>
+                <div><strong>Avoid emotional language</strong> – Stay professional and objective</div>
+              </div>
+            </div>`
+          },
+          {
+            type: "activity",
+            title: "Activity: Choose the Formal Expression",
+            instructions: "Select the formal equivalent for each informal expression.",
+            questions: [
+              { text: "I wanna ask about...", answer: "I would like to inquire about...", options: ["I would like to inquire about...", "I wanna know about...", "Tell me about..."] },
+              { text: "Thanks a lot!", answer: "Thank you very much.", options: ["Thanks so much!", "Thank you very much.", "Thx!"] },
+              { text: "Can you...?", answer: "Would you be so kind as to...?", options: ["Can u...?", "Would you be so kind as to...?", "Will you just...?"] },
+              { text: "I need it ASAP", answer: "I would appreciate a prompt response.", options: ["I need it now!", "Send it quick!", "I would appreciate a prompt response."] },
+              { text: "Sorry but...", answer: "I regret to inform you that...", options: ["Sorry but...", "I regret to inform you that...", "My bad, but..."] }
+            ]
+          }
+        ],
+        generalization: "Effective letters use appropriate register and cohesive devices to maintain professionalism and ethics. Transitional words create smooth connections between ideas."
+      },
+      5: {
+        title: "Synthesis & Assessment",
+        icon: "🎯",
+        objective: "Evaluate letters by examining voice, diction, and point of view",
+        sections: [
+          {
+            type: "content",
+            title: "Week Review: Key Concepts",
+            content: `<div class="grid gap-4">
+              <div class="flex items-center gap-4 p-4 rounded-lg" style="background: rgba(234, 88, 12, 0.1);">
+                <span class="text-3xl">📝</span>
+                <div>
+                  <strong>Day 1:</strong> Letters are essential communication tools with personal, professional, and official purposes.
+                </div>
+              </div>
+              <div class="flex items-center gap-4 p-4 rounded-lg" style="background: rgba(251, 146, 60, 0.1);">
+                <span class="text-3xl">⚖  </span>
+                <div>
+                  <strong>Day 2:</strong> Formal and informal letters differ in tone, structure, and audience relationship.
+                </div>
+              </div>
+              <div class="flex items-center gap-4 p-4 rounded-lg" style="background: rgba(253, 186, 116, 0.1);">
+                <span class="text-3xl">🔍</span>
+                <div>
+                  <strong>Day 3:</strong> Letters have standard parts: heading, inside address, salutation, body, close, and signature.
+                </div>
+              </div>
+              <div class="flex items-center gap-4 p-4 rounded-lg" style="background: rgba(252, 211, 77, 0.1);">
+                <span class="text-3xl">🔗</span>
+                <div>
+                  <strong>Day 4:</strong> Transitional devices and proper etiquette ensure clear, professional communication.
+                </div>
+              </div>
+            </div>`
+          },
+          {
+            type: "content",
+            title: "Sender's Voice: Diction & Style",
+            content: `<p class="mb-4">When analyzing a letter, consider these elements of the sender's voice:</p>
+            <div class="space-y-4">
+              <div class="p-4 rounded-lg" style="border-left: 4px solid #ea580c; background: rgba(234, 88, 12, 0.05);">
+                <strong>Diction</strong> – Word choice reflects formality level and purpose
+              </div>
+              <div class="p-4 rounded-lg" style="border-left: 4px solid #fb923c; background: rgba(251, 146, 60, 0.05);">
+                <strong>Tone</strong> – The attitude conveyed (respectful, urgent, friendly, etc.)
+              </div>
+              <div class="p-4 rounded-lg" style="border-left: 4px solid #fdba74; background: rgba(253, 186, 116, 0.05);">
+                <strong>Sentence Structure</strong> – Complex sentences for formal, simple for informal
+              </div>
+              <div class="p-4 rounded-lg" style="border-left: 4px solid #fcd34d; background: rgba(252, 211, 77, 0.05);">
+                <strong>Point of View</strong> – First person (I) or third person in formal contexts
+              </div>
+            </div>`
+          },
+          {
+            type: "quiz",
+            title: "📋 Summative Assessment",
+            instructions: "Complete this quiz to test your understanding of letter writing concepts.",
+            questions: [
+              { 
+                text: "Which part of a letter contains the sender's address and date?", 
+                answer: "Heading", 
+                options: ["Salutation", "Heading", "Body", "Signature"] 
+              },
+              { 
+                text: "What is the formal equivalent of 'Hi there!'?", 
+                answer: "Dear Sir/Madam:", 
+                options: ["Hey!", "Dear Sir/Madam:", "What's up?", "Hello friend!"] 
+              },
+              { 
+                text: "Which transitional word shows contrast?", 
+                answer: "However", 
+                options: ["Furthermore", "Therefore", "However", "Additionally"] 
+              },
+              { 
+                text: "A letter of inquiry is classified as what type?", 
+                answer: "Formal/Professional", 
+                options: ["Informal/Personal", "Formal/Professional", "Casual", "Friendly"] 
+              },
+              { 
+                text: "Which is the correct complimentary close for a formal letter?", 
+                answer: "Respectfully yours,", 
+                options: ["Later!", "Take care!", "Respectfully yours,", "See ya!"] 
+              },
+              { 
+                text: "'Consequently' is used to show:", 
+                answer: "Cause and effect", 
+                options: ["Addition", "Contrast", "Cause and effect", "Time order"] 
+              },
+              { 
+                text: "What should you avoid in formal letters?", 
+                answer: "Slang and contractions", 
+                options: ["Clear language", "Slang and contractions", "Proper titles", "Organized structure"] 
+              },
+              { 
+                text: "The inside address contains information about the:", 
+                answer: "Recipient", 
+                options: ["Sender", "Recipient", "Date", "Subject"] 
+              },
+              { 
+                text: "Which word is a formal equivalent of 'so'?", 
+                answer: "Therefore", 
+                options: ["But", "Therefore", "And", "Like"] 
+              },
+              { 
+                text: "Evaluating a letter's voice involves examining:", 
+                answer: "Diction, tone, and style", 
+                options: ["Only the signature", "Diction, tone, and style", "Just the greeting", "The paper quality"] 
+              }
+            ]
+          }
+        ],
+        generalization: "Evaluating a letter involves examining voice, diction, tone, and point of view. These elements together determine the clarity and effectiveness of written correspondence."
+      }
+    };
+
+    // Data Handler for Progress Tracking
+    const dataHandler = {
+      onDataChanged(data) {
+        studentProgress = data;
+        updateProgressDisplay();
+      }
+    };
+
+    // Initialize SDKs
+    async function initializeApp() {
+      // Initialize Element SDK
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (newConfig) => {
+            config = { ...defaultConfig, ...newConfig };
+            applyConfig();
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              { get: () => cfg.primary_color || defaultConfig.primary_color, set: (v) => { cfg.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+              { get: () => cfg.secondary_color || defaultConfig.secondary_color, set: (v) => { cfg.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); } },
+              { get: () => cfg.accent_color || defaultConfig.accent_color, set: (v) => { cfg.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } },
+              { get: () => cfg.text_color || defaultConfig.text_color, set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+              { get: () => cfg.muted_color || defaultConfig.muted_color, set: (v) => { cfg.muted_color = v; window.elementSdk.setConfig({ muted_color: v }); } }
+            ],
+            borderables: [],
+            fontEditable: {
+              get: () => cfg.font_family || defaultConfig.font_family,
+              set: (v) => { cfg.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+            },
+            fontSizeable: {
+              get: () => cfg.font_size || defaultConfig.font_size,
+              set: (v) => { cfg.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+            }
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ["lesson_title", cfg.lesson_title || defaultConfig.lesson_title],
+            ["welcome_message", cfg.welcome_message || defaultConfig.welcome_message]
+          ])
+        });
+      }
+
+      // Initialize Data SDK
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error("Failed to initialize data SDK");
+        }
+      }
+
+      renderDayGrid();
+      applyConfig();
+    }
+
+    // Apply configuration to UI
+    function applyConfig() {
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const mutedColor = config.muted_color || defaultConfig.muted_color;
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      const fontSize = config.font_size || defaultConfig.font_size;
+
+      // Update title and welcome text
+      const titleEl = document.getElementById('main-title');
+      const welcomeEl = document.getElementById('welcome-text');
+      
+      if (titleEl) {
+        titleEl.textContent = config.lesson_title || defaultConfig.lesson_title;
+        titleEl.style.color = textColor;
+        titleEl.style.fontFamily = `${fontFamily}, Georgia, serif`;
+        titleEl.style.fontSize = `${fontSize * 1.875}px`;
+      }
+      
+      if (welcomeEl) {
+        welcomeEl.textContent = config.welcome_message || defaultConfig.welcome_message;
+        welcomeEl.style.color = mutedColor;
+        welcomeEl.style.fontSize = `${fontSize * 0.875}px`;
+      }
+
+      // Update app background
+      const appEl = document.getElementById('app');
+      if (appEl) {
+        appEl.style.background = `linear-gradient(180deg, ${primaryColor} 0%, ${secondaryColor} 50%, ${primaryColor} 100%)`;
+      }
+
+      // Update progress text color
+      const progressText = document.getElementById('progress-text');
+      if (progressText) {
+        progressText.style.color = textColor;
+      }
+
+      // Update progress bar color
+      const progressBar = document.getElementById('progress-bar');
+      if (progressBar) {
+        progressBar.style.background = `linear-gradient(90deg, ${accentColor}, ${textColor})`;
+      }
+
+      // Re-render current day if active
+      if (currentDay) {
+        renderLesson(currentDay);
+      }
+    }
+
+    // Render Day Selection Grid
+    function renderDayGrid() {
+      const grid = document.getElementById('day-grid');
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      
+      grid.innerHTML = '';
+      
+      for (let day = 1; day <= 5; day++) {
+        const lesson = lessonData[day];
+        const isCompleted = studentProgress.some(p => p.lessonDay === day);
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        
+        const card = document.createElement('div');
+        card.className = `day-card cursor-pointer rounded-xl p-4 transition-all duration-300 hover:scale-105 animate-slide-in`;
+        card.style.cssText = `
+          background: linear-gradient(135deg, ${secondaryColor} 0%, ${config.primary_color || defaultConfig.primary_color} 100%);
+          border: 2px solid ${isCompleted ? '#34d399' : '#44403c'};
+          animation-delay: ${day * 0.1}s;
+        `;
+        
+        card.innerHTML = `
+          <div class="text-center">
+            <div class="text-3xl mb-2">${lesson.icon}</div>
+            <div class="text-xs font-medium mb-1" style="color: ${config.muted_color || defaultConfig.muted_color};">Day ${day}</div>
+            <div class="font-heading font-bold text-sm mb-1" style="color: ${textColor};">${dayNames[day-1]}</div>
+            <div class="text-xs truncate" style="color: ${config.muted_color || defaultConfig.muted_color};">${lesson.title}</div>
+            ${isCompleted ? '<div class="mt-2 text-green-400 text-xs">✓ Completed</div>' : ''}
+          </div>
+        `;
+        
+        card.addEventListener('click', () => {
+          currentDay = day;
+          renderLesson(day);
+          document.querySelectorAll('.day-card').forEach(c => c.style.borderColor = '#44403c');
+          card.style.borderColor = accentColor;
+        });
+        
+        grid.appendChild(card);
+      }
+    }
+
+    // Render Lesson Content
+    function renderLesson(day) {
+      const lesson = lessonData[day];
+      const content = document.getElementById('lesson-content');
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const mutedColor = config.muted_color || defaultConfig.muted_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      const fontSize = config.font_size || defaultConfig.font_size;
+      
+      let html = `
+        <div class="animate-slide-in">
+          <div class="flex items-center gap-4 mb-6 pb-4" style="border-bottom: 1px solid #44403c;">
+            <span class="text-5xl">${lesson.icon}</span>
+            <div>
+              <h2 class="font-heading text-2xl md:text-3xl font-bold" style="color: ${textColor}; font-family: ${fontFamily}, Georgia, serif; font-size: ${fontSize * 1.75}px;">Day ${day}: ${lesson.title}</h2>
+              <p style="color: ${mutedColor}; font-size: ${fontSize * 0.875}px;"><strong>Objective:</strong> ${lesson.objective}</p>
+            </div>
+          </div>
+      `;
+      
+      lesson.sections.forEach((section, idx) => {
+        if (section.type === 'content') {
+          html += `
+            <div class="mb-8 animate-slide-in" style="animation-delay: ${idx * 0.1}s;">
+              <h3 class="font-heading text-xl font-bold mb-4" style="color: ${textColor}; font-family: ${fontFamily}, Georgia, serif; font-size: ${fontSize * 1.25}px;">${section.title}</h3>
+              <div style="color: ${mutedColor}; font-size: ${fontSize}px;">${section.content}</div>
+            </div>
+          `;
+        } else if (section.type === 'activity' || section.type === 'quiz') {
+          html += `
+            <div class="mb-8 p-6 rounded-xl animate-slide-in" style="background: rgba(234, 88, 12, 0.05); border: 1px solid #44403c; animation-delay: ${idx * 0.1}s;">
+              <h3 class="font-heading text-xl font-bold mb-2" style="color: ${textColor}; font-family: ${fontFamily}, Georgia, serif; font-size: ${fontSize * 1.25}px;">${section.title}</h3>
+              <p class="mb-4" style="color: ${mutedColor}; font-size: ${fontSize * 0.875}px;">${section.instructions}</p>
+              <div id="activity-${day}-${idx}" class="space-y-4"></div>
+              <div id="results-${day}-${idx}" class="mt-4 hidden"></div>
+            </div>
+          `;
+        }
+      });
+      
+      html += `
+        <div class="mt-8 p-6 rounded-xl" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.2), rgba(251, 146, 60, 0.1)); border-left: 4px solid ${accentColor};">
+          <h4 class="font-heading font-bold mb-2" style="color: ${textColor}; font-size: ${fontSize * 1.125}px;">📌 Key Takeaway</h4>
+          <p style="color: ${mutedColor}; font-size: ${fontSize}px;">${lesson.generalization}</p>
+        </div>
+      </div>`;
+      
+      content.innerHTML = html;
+      content.style.background = `linear-gradient(135deg, ${secondaryColor} 0%, ${config.primary_color || defaultConfig.primary_color} 100%)`;
+      
+      // Render activities/quizzes
+      lesson.sections.forEach((section, idx) => {
+        if (section.type === 'activity' || section.type === 'quiz') {
+          renderActivity(day, idx, section);
+        }
+      });
+    }
+
+    // Render Activity/Quiz
+    function renderActivity(day, sectionIdx, section) {
+      const container = document.getElementById(`activity-${day}-${sectionIdx}`);
+      const resultsContainer = document.getElementById(`results-${day}-${sectionIdx}`);
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const mutedColor = config.muted_color || defaultConfig.muted_color;
+      const fontSize = config.font_size || defaultConfig.font_size;
+      
+      let userAnswers = new Array(section.questions.length).fill(null);
+      
+      const renderQuestions = () => {
+        container.innerHTML = section.questions.map((q, qIdx) => `
+          <div class="p-4 rounded-lg" style="background: rgba(0,0,0,0.2);">
+            <p class="font-medium mb-3" style="color: ${textColor}; font-size: ${fontSize}px;">${qIdx + 1}. ${q.text}</p>
+            <div class="grid gap-2">
+              ${q.options.map((opt, oIdx) => `
+                <button 
+                  class="quiz-option text-left px-4 py-2 rounded-lg transition-all"
+                  style="background: rgba(255,255,255,0.05); border: 1px solid #44403c; color: ${mutedColor}; font-size: ${fontSize * 0.875}px;"
+                  data-question="${qIdx}"
+                  data-option="${oIdx}"
+                  data-value="${opt}"
+                >
+                  ${opt}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+        
+        // Add event listeners
+        container.querySelectorAll('.quiz-option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const qIdx = parseInt(btn.dataset.question);
+            const value = btn.dataset.value;
+            
+            // Clear previous selection for this question
+            container.querySelectorAll(`[data-question="${qIdx}"]`).forEach(b => {
+              b.classList.remove('selected');
+              b.style.background = 'rgba(255,255,255,0.05)';
+              b.style.borderColor = '#44403c';
+            });
+            
+            // Mark selected
+            btn.classList.add('selected');
+            btn.style.background = '#fef3c7';
+            btn.style.borderColor = accentColor;
+            userAnswers[qIdx] = value;
+          });
+        });
+      };
+      
+      renderQuestions();
+      
+      // Add submit button
+      const submitBtn = document.createElement('button');
+      submitBtn.className = 'mt-6 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105';
+      submitBtn.style.cssText = `background: ${accentColor}; color: white; font-size: ${fontSize}px;`;
+      submitBtn.textContent = section.type === 'quiz' ? '📝 Submit Quiz' : '✓ Check Answers';
+      
+      submitBtn.addEventListener('click', async () => {
+        let correct = 0;
+        const total = section.questions.length;
+        
+        section.questions.forEach((q, qIdx) => {
+          const buttons = container.querySelectorAll(`[data-question="${qIdx}"]`);
+          buttons.forEach(btn => {
+            btn.disabled = true;
+            if (btn.dataset.value === q.answer) {
+              btn.classList.add('correct');
+              btn.style.background = '#dcfce7';
+              btn.style.borderColor = '#16a34a';
+            } else if (btn.classList.contains('selected')) {
+              btn.classList.add('incorrect');
+              btn.style.background = '#fee2e2';
+              btn.style.borderColor = '#dc2626';
+            }
+          });
+          
+          if (userAnswers[qIdx] === q.answer) {
+            correct++;
+          }
+        });
+        
+        const percentage = Math.round((correct / total) * 100);
+        const isPassing = percentage >= 70;
+        
+        resultsContainer.className = 'mt-4 p-4 rounded-lg text-center';
+        resultsContainer.style.background = isPassing ? 'rgba(52, 211, 153, 0.2)' : 'rgba(248, 113, 113, 0.2)';
+        resultsContainer.innerHTML = `
+          <div class="text-4xl mb-2">${isPassing ? '🎉' : '📚'}</div>
+          <div class="text-2xl font-bold mb-1" style="color: ${isPassing ? '#34d399' : '#f87171'};">${correct}/${total} Correct (${percentage}%)</div>
+          <p style="color: ${mutedColor};">${isPassing ? 'Great job! You passed this activity!' : 'Keep studying! Review the material and try again.'}</p>
+        `;
+        
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        
+        // Save progress
+        if (window.dataSdk && studentProgress.length < 999) {
+          const existingRecord = studentProgress.find(p => p.lessonDay === day && p.activityType === section.type);
+          
+          if (existingRecord) {
+            await window.dataSdk.update({
+              ...existingRecord,
+              score: correct,
+              maxScore: total,
+              completedAt: new Date().toISOString(),
+              answers: JSON.stringify(userAnswers)
+            });
+          } else {
+            await window.dataSdk.create({
+              lessonDay: day,
+              activityType: section.type,
+              score: correct,
+              maxScore: total,
+              completedAt: new Date().toISOString(),
+              answers: JSON.stringify(userAnswers)
+            });
+          }
+        }
+      });
+      
+      container.appendChild(submitBtn);
+    }
+
+    // Update Progress Display
+    function updateProgressDisplay() {
+      const completedDays = new Set(studentProgress.map(p => p.lessonDay)).size;
+      const progressText = document.getElementById('progress-text');
+      const progressBar = document.getElementById('progress-bar');
+      
+      if (progressText) {
+        progressText.textContent = `${completedDays}/5 Days`;
+      }
+      
+      if (progressBar) {
+        progressBar.style.width = `${(completedDays / 5) * 100}%`;
+      }
+      
+      renderDayGrid();
+    }
+
+    // Zoom Controls
+    function updateZoom() {
+      const mainContent = document.querySelector('main');
+      const zoomLevelDisplay = document.getElementById('zoom-level');
+      
+      if (mainContent) {
+        mainContent.style.transform = `scale(${zoomLevel})`;
+        mainContent.style.transformOrigin = 'top center';
+      }
+      
+      if (zoomLevelDisplay) {
+        zoomLevelDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
+      }
+    }
+
+    document.getElementById('zoom-in').addEventListener('click', () => {
+      if (zoomLevel < 2.0) {
+        zoomLevel += 0.1;
+        updateZoom();
+      }
+    });
+
+    document.getElementById('zoom-out').addEventListener('click', () => {
+      if (zoomLevel > 0.5) {
+        zoomLevel -= 0.1;
+        updateZoom();
+      }
+    });
+
+    // Initialize on load
+    initializeApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c712adf441a4e49',t:'MTc2OTk0NTk1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
